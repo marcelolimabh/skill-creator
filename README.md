@@ -22,7 +22,8 @@ Learn more: [Anthropic Skill Creator Guide](https://resources.anthropic.com/hubf
 - 🧙 **Guided wizard** — contextual questions per project type (9 for Backend/Frontend, 7 for Fullstack)
 - 🤖 **AI-powered generation** — Claude API generates a detailed, production-ready skill
 - 🔒 **Security validation** — automatic prompt injection and vulnerability analysis with a 0–100 score
-- 📦 **Triple export** — YAML skill + `package.json` + CLI script (`bin/skill-creator.js`)
+- 📦 **Quad export** — YAML skill + `package.json` + CLI script + `SKILL.md`
+- 🌙 **Dark mode** — automatic dark/light theme based on system preference
 - 🔀 **Git versioning** — track skill changes with `git diff`
 - 🐳 **Docker ready** — multi-stage Dockerfile included
 
@@ -55,10 +56,19 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```
 skill-creator/
 ├── src/
+│   ├── app/
+│   │   ├── layout.tsx             # Root layout with metadata/SEO
+│   │   ├── page.tsx               # Main page (renders SkillCreator)
+│   │   ├── globals.css            # Global styles + dark/light mode
+│   │   └── api/
+│   │       ├── generate/route.ts  # Skill generation endpoint (Claude API)
+│   │       └── validate/route.ts  # Security validation endpoint (Claude API)
 │   └── components/
-│       └── SkillCreator.tsx   # Main component (wizard, templates, i18n, API calls)
-├── Dockerfile                 # Multi-stage build (deps → builder → runner)
-├── .env.example               # Environment variable reference
+│       └── SkillCreator.tsx       # Main component (wizard, templates, i18n)
+├── Dockerfile                     # Multi-stage build (deps → builder → runner)
+├── next.config.mjs                # Next.js config (standalone output)
+├── tsconfig.json                  # TypeScript configuration
+├── .env.example                   # Environment variable reference
 ├── .gitignore
 ├── package.json
 └── README.md
@@ -75,7 +85,7 @@ The entire UI lives in a single self-contained React component that includes:
 | **Templates** | 6 pre-configured stacks (Spring Boot, Next.js, React Native, FastAPI, Vue 3, Go Microservice) |
 | **API integration** | Calls `/api/generate` and `/api/validate` Next.js routes |
 | **Security panel** | Displays score (0–100), issues list, and severity levels |
-| **Export** | Downloads YAML, `package.json`, and CLI script |
+| **Export** | Downloads YAML, `package.json`, CLI script, and `SKILL.md` |
 
 ---
 
@@ -95,7 +105,7 @@ Claude API (security pass)
   → score 0–100
        │
        ▼
-Download: YAML + package.json + CLI script
+Download: YAML + package.json + CLI script + SKILL.md
 ```
 
 ---
@@ -112,12 +122,19 @@ cp project-skill.yaml .claude/skills/
 /skills load .claude/skills/project-skill.yaml
 ```
 
-### Add a CLAUDE.md to your project root
+### Add a SKILL.md to your project root
+
+The **Download MD** button generates a ready-to-use `SKILL.md` with your skill embedded:
 
 ```markdown
+# SKILL.md
+
 ## Claude Skill
 This project uses a custom Claude Skill.
 File: `.claude/skills/project-skill.yaml`
+
+## Skill content
+(your generated YAML is embedded here)
 ```
 
 ### Track changes with Git
@@ -217,7 +234,7 @@ docker run -p 3000:3000 -e ANTHROPIC_API_KEY=sk-ant-... skill-creator
 | Language | TypeScript |
 | AI | [Anthropic Claude API](https://docs.anthropic.com) (`@anthropic-ai/sdk`) |
 | Runtime | Node.js ≥ 20 |
-| Styling | CSS-in-JS (inline styles) |
+| Styling | CSS-in-JS (inline styles) + CSS custom properties (dark/light mode) |
 | Deploy | Vercel / Docker |
 | Rate limiting | Upstash Redis (optional) |
 
@@ -254,13 +271,14 @@ Areas where help is especially welcome:
 - [x] Frontend wizard (React, Vue, Angular, React Native, Expo, Flutter…)
 - [x] Fullstack wizard (Next.js, Nuxt, SvelteKit, Remix, Analog)
 - [x] Security validation with score
-- [x] Triple export (YAML + npm package + CLI script)
+- [x] Quad export (YAML + npm package + CLI script + SKILL.md)
 - [x] Bilingual interface (EN + PT-BR)
 - [x] Docker support
+- [x] Dark mode (automatic via system preference)
+- [x] Auto-generate `SKILL.md` alongside the skill
 - [ ] Skill Marketplace — share and discover public skills
 - [ ] Visual diff between skill versions
 - [ ] GitHub Actions — regenerate skill on push
-- [ ] Auto-generate `CLAUDE.md` alongside the skill
 - [ ] Skill linting and schema validation
 - [ ] Component extraction and refactoring
 
