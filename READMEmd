@@ -1,0 +1,261 @@
+# ⚡ Skill Creator
+
+> Generate production-ready **Claude Skills** for any project stack — interactively, in seconds.
+
+[![npm version](https://img.shields.io/npm/v/skill-creator-cli?color=534AB7)](https://www.npmjs.com/package/skill-creator-cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USER/skill-creator)
+
+---
+
+## What is a Claude Skill?
+
+A **Claude Skill** is a YAML file that gives Claude deep context about your project — your stack, architecture, coding conventions, security rules, and examples. It makes Claude behave like a senior developer who already knows your codebase.
+
+Learn more: [Anthropic Skill Creator Guide](https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf)
+
+---
+
+## Features
+
+- 🌐 **Bilingual** — Portuguese (BR) and English interface
+- 🎯 **3 project types** — Backend, Frontend, Fullstack
+- 📋 **6 ready-made templates** — Spring Boot, Next.js, React Native, FastAPI, Vue 3, Go Microservice
+- 🧙 **Guided wizard** — 9 contextual questions per project type
+- 🤖 **AI-powered generation** — Claude API generates a detailed, production-ready skill
+- 🔒 **Security validation** — automatic prompt injection and vulnerability analysis with a 0–100 score
+- 📦 **Triple export** — YAML skill + `package.json` + CLI script (`bin/skill-creator.js`)
+- 🔀 **Git versioning** — track skill changes with `git diff`
+
+---
+
+## Quick start
+
+### Web app (recommended)
+
+```
+https://skill-creator.vercel.app
+```
+
+No install needed. Open, answer the wizard, download your skill.
+
+---
+
+### CLI via npx
+
+```bash
+npx skill-creator
+```
+
+This scaffolds `.claude/skills/project-skill.yaml` in your current project directory.
+
+---
+
+### Local development
+
+```bash
+git clone https://github.com/YOUR_USER/skill-creator.git
+cd skill-creator
+npm install
+npm run dev
+```
+
+Set your API key:
+
+```bash
+cp .env.example .env.local
+# edit .env.local → ANTHROPIC_API_KEY=sk-ant-...
+```
+
+---
+
+## Project structure
+
+```
+skill-creator/
+├── src/
+│   ├── app/                  # Next.js app router
+│   │   ├── page.tsx          # Main entry
+│   │   └── api/
+│   │       ├── generate/     # Skill generation endpoint
+│   │       └── validate/     # Security validation endpoint
+│   ├── components/
+│   │   ├── SkillCreator.tsx  # Main wizard component
+│   │   ├── TemplateGrid.tsx
+│   │   ├── WizardStep.tsx
+│   │   └── ResultPanel.tsx
+│   └── lib/
+│       ├── questions.ts      # Wizard questions (EN + PT-BR)
+│       ├── templates.ts      # Pre-built templates
+│       └── claude.ts         # Anthropic API client
+├── bin/
+│   └── skill-creator.js      # npx CLI entry point
+├── public/
+├── .env.example
+├── package.json
+└── vercel.json
+```
+
+---
+
+## How it works
+
+```
+User answers wizard
+       │
+       ▼
+Claude API (claude-sonnet-4)
+  → generates YAML skill
+       │
+       ▼
+Claude API (security pass)
+  → prompt injection check
+  → vulnerability analysis
+  → score 0–100
+       │
+       ▼
+Download: YAML + package.json + CLI script
+```
+
+---
+
+## Using your generated skill
+
+### With Claude Code
+
+```bash
+# Place the skill in your project
+cp project-skill.yaml .claude/skills/
+
+# Load in Claude Code
+/skills load .claude/skills/project-skill.yaml
+```
+
+### Add a CLAUDE.md to your project root
+
+```markdown
+## Claude Skill
+This project uses a custom Claude Skill.
+File: `.claude/skills/project-skill.yaml`
+```
+
+### Track changes with Git
+
+```bash
+git add .claude/skills/
+git commit -m "feat: add Claude skill for this project"
+
+# After regenerating
+git diff .claude/skills/project-skill.yaml
+```
+
+---
+
+## Supported stacks
+
+### Backend
+| Language | Frameworks |
+|---|---|
+| Java | Spring Boot, Quarkus, Micronaut, Vert.x |
+| TypeScript | NestJS, Express, Fastify, Hono, tRPC |
+| Python | FastAPI, Django, Flask, Litestar |
+| Go | Gin, Echo, Fiber, gRPC |
+| Rust | Axum, Actix-web, Rocket |
+| C# | ASP.NET Core, Blazor, Minimal API |
+| PHP | Laravel, Symfony |
+| Ruby | Rails, Sinatra |
+| Kotlin | Ktor, Spring Boot |
+
+### Frontend
+| Type | Frameworks |
+|---|---|
+| Web | React, Vue 3, Angular, Svelte, Solid.js, Astro |
+| Mobile | React Native, Expo, Flutter, Ionic |
+| Desktop | Electron, Tauri |
+| PWA / SSG | Next.js, Nuxt, Astro, Gatsby |
+
+### Fullstack
+Next.js, Nuxt 3, SvelteKit, Remix, Analog (Angular)
+
+---
+
+## Deploy your own instance
+
+### Vercel (free)
+
+1. Fork this repo
+2. Import at [vercel.com/new](https://vercel.com/new)
+3. Add environment variable: `ANTHROPIC_API_KEY`
+4. Deploy — done
+
+### Docker
+
+```bash
+docker build -t skill-creator .
+docker run -p 3000:3000 -e ANTHROPIC_API_KEY=sk-ant-... skill-creator
+```
+
+---
+
+## Environment variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | ✅ | Your Anthropic API key |
+| `NEXT_PUBLIC_APP_URL` | optional | Public URL for OG tags |
+
+---
+
+## Contributing
+
+Contributions are welcome!
+
+```bash
+# Fork → clone → branch
+git checkout -b feat/my-new-template
+
+# Add your template in src/lib/templates.ts
+# Add questions in src/lib/questions.ts if needed
+
+# Test
+npm run dev
+
+# PR
+git push origin feat/my-new-template
+```
+
+Areas where help is especially welcome:
+- New stack templates
+- Additional language translations
+- Skill Marketplace (share public skills)
+- GitHub Actions integration
+
+---
+
+## Roadmap
+
+- [x] Backend wizard (Java, Python, Go, Rust, C#…)
+- [x] Frontend wizard (React, Vue, Angular, React Native…)
+- [x] Fullstack wizard (Next.js, Nuxt, SvelteKit…)
+- [x] Security validation with score
+- [x] npx CLI export
+- [ ] Skill Marketplace — share and discover public skills
+- [ ] Visual diff between skill versions
+- [ ] GitHub Actions — regenerate skill on push
+- [ ] Auto-generate `CLAUDE.md` alongside the skill
+- [ ] Skill linting and schema validation
+
+---
+
+## License
+
+MIT © [Marcelo — @YOUR_GITHUB](https://github.com/YOUR_USER)
+
+---
+
+## Acknowledgements
+
+Built on top of:
+- [Anthropic Claude API](https://docs.anthropic.com)
+- [Claude Skill Creator Guide](https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf)
+- [skills.sh](https://skills.sh) — skill inspiration and patterns
