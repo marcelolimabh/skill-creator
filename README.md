@@ -1,14 +1,48 @@
 # ⚡ Skill Creator
 
-> Generate production-ready **Claude Skills** for any project stack — interactively, in seconds.
+> Generate production-ready **Claude Skills** + complete **.claude/ structure** for any project stack — interactively, in seconds.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/marcelolimabh/skill-creator&env=ANTHROPIC_API_KEY)
 
 ---
 
-## What is a Claude Skill?
+## What does this generate?
 
+### 🧠 Claude Skill (YAML)
 A **Claude Skill** is a YAML file that gives Claude deep context about your project — your stack, architecture, coding conventions, security rules, and examples. It makes Claude behave like a senior developer who already knows your codebase.
+
+### 📁 Complete .claude/ Structure
+But we go beyond just the skill. This tool generates a **complete .claude/ directory** following Claude Code best practices:
+
+```
+.claude/
+├── CLAUDE.md              # 🧠 Project brain — context, conventions, rules
+├── skills/                # ⚡ 8 reusable AI workflows 
+│   ├── code-review.yaml   # → Comprehensive code review expert
+│   ├── refactor-expert.yaml # → Code refactoring and improvement
+│   ├── testing-expert.yaml # → Test generation and strategy
+│   ├── deployment-expert.yaml # → Deployment automation
+│   ├── architecture-review.yaml # → System design review
+│   ├── security-audit.yaml # → Security scanning and fixes
+│   ├── performance-optimization.yaml # → Performance analysis
+│   └── documentation-expert.yaml # → Technical writing
+├── hooks/                 # 🔗 7 automated quality gates
+│   ├── pre-commit.yml     # → Quality checks before commit
+│   ├── pre-push.yml       # → Full validation before push
+│   ├── post-merge.yml     # → Environment sync after merge
+│   ├── code-quality.yml   # → Continuous quality monitoring
+│   ├── security-scan.yml  # → Automated security scanning
+│   ├── testing-automation.yml # → Smart test execution
+│   └── deployment-validation.yml # → Pre-deployment safety
+└── docs/                  # 📚 5 architectural documents
+    ├── ADR-001-architecture-decisions.md # → Why key decisions were made
+    ├── onboarding.md      # → Get new developers productive fast
+    ├── contributing.md    # → Development standards and workflow
+    ├── api-reference.md   # → API design patterns and conventions
+    └── roi-and-best-practices.md # → ROI model and optimization guide
+```
+
+**Result**: Your team stops repeating prompts and gets consistent, high-quality AI assistance. Estimated **60% time savings** per developer with **2,300% annual ROI**.
 
 Learn more: [Anthropic Skill Creator Guide](https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf)
 
@@ -16,16 +50,36 @@ Learn more: [Anthropic Skill Creator Guide](https://resources.anthropic.com/hubf
 
 ## Features
 
+### 🚀 Complete AI Assistant Setup
+- 🧠 **Smart CLAUDE.md** — Captures your project's DNA (conventions, architecture, quality standards)
+- ⚡ **8 Expert Skills** — Code review, refactoring, testing, deployment, security, performance, docs, architecture
+- 🔗 **7 Quality Hooks** — Automated pre-commit, pre-push, security scanning, quality gates
+- 📚 **5 Decision Documents** — ADRs, onboarding guides, contributing standards, API reference, ROI guide
+
+### 🎯 User Experience
 - 🌐 **Bilingual** — Portuguese (BR) and English interface
 - 🎯 **3 project types** — Backend, Frontend, Fullstack
 - 📋 **6 ready-made templates** — Spring Boot, Next.js, React Native, FastAPI, Vue 3, Go Microservice
 - 🧙 **Guided wizard** — contextual questions per project type (9 for Backend/Frontend, 7 for Fullstack)
-- 🤖 **AI-powered generation** — Claude API generates a detailed, production-ready skill
+- 🤖 **AI-powered generation** — Claude API generates detailed, production-ready content
+
+### 🔒 Quality & Security
 - 🔒 **Security validation** — automatic prompt injection and vulnerability analysis with a 0–100 score
-- 📦 **Quad export** — YAML skill + `package.json` + CLI script + `SKILL.md`
-- 🌙 **Dark mode** — automatic dark/light theme based on system preference
-- 🔀 **Git versioning** — track skill changes with `git diff`
-- 🐳 **Docker ready** — multi-stage Dockerfile included
+- 📊 **ROI calculation** — Estimates time savings and business value per developer
+- 🎯 **Quality metrics** — Coverage targets, complexity thresholds, performance goals
+
+### 📦 Export Options
+- 📁 **.claude/ ZIP** — Complete structure ready to extract
+- 🛠️ **install.sh** — One-command setup script
+- 📜 **YAML skill** — Traditional single-skill file
+- 📦 **npm package** — CLI distribution
+- 📝 **SKILL.md** — Documentation with embedded skill
+
+### 🎨 Developer Experience
+- 🌙 **Dark mode** — Automatic dark/light theme based on system preference
+- 🔀 **Git versioning** — Track skill changes with `git diff`
+- 🐳 **Docker ready** — Multi-stage Dockerfile included
+- 📱 **Tree view** — Interactive file explorer for .claude/ structure
 
 ---
 
@@ -92,20 +146,26 @@ The entire UI lives in a single self-contained React component that includes:
 ## How it works
 
 ```
-User answers wizard
+User answers wizard (backend/frontend/fullstack)
        │
        ▼
-Claude API (claude-sonnet-4)
-  → generates YAML skill
+Claude API (claude-sonnet-4) generates YAML skill
        │
        ▼
-Claude API (security pass)
-  → prompt injection check
-  → vulnerability analysis
-  → score 0–100
+Security validation (prompt injection + vulnerability analysis)
        │
        ▼
-Download: YAML + package.json + CLI script + SKILL.md
+Generate complete .claude/ structure:
+  • CLAUDE.md (project brain)
+  • 8 expert skills (code review, refactor, testing, etc.)
+  • 7 quality hooks (pre-commit, security, deployment, etc.)
+  • 5 documentation files (ADR, onboarding, API ref, etc.)
+       │
+       ▼
+Multiple export options:
+  📁 ZIP download (complete .claude/ structure)
+  🛠️ install.sh (one-command setup)
+  📜 Individual files (YAML, npm package, CLI, SKILL.md)
 ```
 
 ---
