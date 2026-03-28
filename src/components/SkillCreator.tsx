@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { generateClaudeStructure, generateInstallScript, generateTreeView, ClaudePackage } from "../generators/structure";
+import { ClaudeProjectContext, ClaudeTeamContext } from "../types/claude-structure";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Lang = "en" | "pt";
@@ -8,6 +10,7 @@ type Phase = "welcome" | "type" | "template" | "wizard" | "generating" | "result
 type ProjectType = "backend" | "frontend" | "fullstack";
 type SecLevel = "safe" | "warning" | "danger";
 type QType = "select" | "multi" | "text";
+type ResultTab = "yaml" | "npm" | "cli" | "md" | "claude-tree" | "install-sh";
 
 interface Question {
     id: string;
@@ -37,30 +40,46 @@ interface SecurityResult {
 // ─── i18n ─────────────────────────────────────────────────────────────────────
 const T: Record<Lang, Record<string, string>> = {
     en: {
-        title: "Skill Creator", sub: "Generate production-ready Claude Skills",
+        title: "Skill Creator", sub: "Generate production-ready Claude Skills + .claude/ structure",
         chooseLang: "Choose language", useTemplate: "Quick templates", startWizard: "Custom wizard",
-        back: "Back", next: "Next", generate: "Generate Skill",
+        back: "Back", next: "Next", generate: "Generate Skill + .claude/",
         generating: "Generating your skill…", validating: "Running security analysis…",
+        generatingClaude: "Building .claude/ structure…",
         downloadYaml: "Download YAML", downloadNpm: "Download npm package", downloadCli: "Download CLI", downloadMd: "Download MD",
+        downloadInstall: "Download install.sh", downloadZip: "Download .claude/ ZIP",
         newSkill: "New skill", secReport: "Security report", skillOutput: "Generated skill",
+        claudeStructure: ".claude/ Structure", claudeTree: "File Tree", installSh: "install.sh",
         safe: "Safe", warning: "Warning", danger: "Danger", score: "Security score",
         copy: "Copy", copied: "Copied!", templates: "Quick-start templates",
         step: "Step", of: "of", projectType: "Project type",
         versionNote: "Versioning tip",
         diffNote: "Run `git diff .claude/skills/` to track skill changes over time.",
+        claudeSectionTitle: "🧠 .claude/ Structure",
+        claudeSectionSub: "Your complete AI assistant setup — ready to commit",
+        benefitsTitle: "Key Benefits",
+        filesGenerated: "files generated",
+        timeSavings: "Estimated time savings",
     },
     pt: {
-        title: "Skill Creator", sub: "Gere Skills prontas para produção para o Claude",
+        title: "Skill Creator", sub: "Gere Skills prontas para produção + estrutura .claude/",
         chooseLang: "Escolha o idioma", useTemplate: "Templates rápidos", startWizard: "Assistente personalizado",
-        back: "Voltar", next: "Próximo", generate: "Gerar Skill",
+        back: "Voltar", next: "Próximo", generate: "Gerar Skill + .claude/",
         generating: "Gerando sua skill…", validating: "Executando análise de segurança…",
+        generatingClaude: "Construindo estrutura .claude/…",
         downloadYaml: "Baixar YAML", downloadNpm: "Baixar pacote npm", downloadCli: "Baixar CLI", downloadMd: "Baixar MD",
+        downloadInstall: "Baixar install.sh", downloadZip: "Baixar .claude/ ZIP",
         newSkill: "Nova skill", secReport: "Relatório de segurança", skillOutput: "Skill gerada",
+        claudeStructure: "Estrutura .claude/", claudeTree: "Árvore de arquivos", installSh: "install.sh",
         safe: "Seguro", warning: "Atenção", danger: "Perigo", score: "Score de segurança",
         copy: "Copiar", copied: "Copiado!", templates: "Templates rápidos",
         step: "Etapa", of: "de", projectType: "Tipo de projeto",
         versionNote: "Versionamento",
         diffNote: "Execute `git diff .claude/skills/` para rastrear mudanças na skill.",
+        claudeSectionTitle: "🧠 Estrutura .claude/",
+        claudeSectionSub: "Sua configuração completa do assistente de IA — pronta para commitar",
+        benefitsTitle: "Principais benefícios",
+        filesGenerated: "arquivos gerados",
+        timeSavings: "Economia estimada de tempo",
     },
 };
 
@@ -311,7 +330,9 @@ export default function SkillCreator() {
     const [loading, setLoading] = useState("");
     const [error, setError] = useState("");
     const [copied, setCopied] = useState(false);
-    const [activeTab, setActiveTab] = useState<"yaml" | "npm" | "cli" | "md">("yaml");
+    const [activeTab, setActiveTab] = useState<ResultTab>("yaml");
+    const [claudePackage, setClaudePackage] = useState<ClaudePackage | null>(null);
+    const [activeClaudeFile, setActiveClaudeFile] = useState<string | null>(null);
 
     const t = T[lang ?? "en"];
 
@@ -352,6 +373,25 @@ export default function SkillCreator() {
             setLoading(t.validating);
             const sec = await validateSkillApi(yaml);
             setSecurity(sec);
+
+            // Generate .claude/ structure
+            setLoading(t.generatingClaude ?? "Building .claude/ structure…");
+            const context: ClaudeProjectContext = {
+                projectName: (ans.description as string)?.split(' ').slice(0, 3).join(' ') || 'My Project',
+                projectDescription: ans.description as string || '',
+                framework: (ans.framework || ans.frontend_fw || ans.backend_fw || ans.frontend_type || 'Unknown') as string,
+                language: (ans.language || ans.backend_lang || 'TypeScript') as string,
+                architecture: ans.architecture as string,
+                database: Array.isArray(ans.database) ? ans.database as string[] : ans.database ? [ans.database as string] : [],
+                authentication: (ans.auth as string) || undefined,
+                testing: Array.isArray(ans.testing) ? ans.testing as string[] : [],
+                deployment: (ans.deploy as string) || undefined,
+                features: Array.isArray(ans.extras) ? ans.extras as string[] : [],
+            };
+            const teamCtx: ClaudeTeamContext = { teamSize: 'small', experience: 'mixed', methodology: 'agile', codeReviewProcess: true };
+            const pkg = generateClaudeStructure(context, teamCtx);
+            setClaudePackage(pkg);
+
             setPhase("result");
         } catch (e) {
             setError(e instanceof Error ? e.message : "Unknown error");
@@ -369,6 +409,26 @@ export default function SkillCreator() {
         setProjectType(pt);
         setAnswers(rest);
         generate(tpl.answers);
+    };
+
+    // ── .claude/ file utilities ───────────────────────────────────────────────
+    const getClaudeFileContent = (path: string): string => {
+        if (!claudePackage) return '';
+        const file = claudePackage.files.find(f => f.path === path);
+        return file?.content ?? '';
+    };
+
+    const downloadZip = async () => {
+        if (!claudePackage) return;
+        // Dynamic import to avoid SSR issues
+        const JSZip = (await import('jszip')).default;
+        const zip = new JSZip();
+        claudePackage.files.forEach(f => zip.file(f.path, f.content));
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'claude-structure.zip';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     };
 
     // ── File generators ──────────────────────────────────────────────────────
@@ -420,8 +480,11 @@ console.log('Run: git diff .claude/skills/ to track changes.');
 
     const tabContent = activeTab === "yaml" ? skillYaml
         : activeTab === "npm" ? getNpmPackage()
-            : activeTab === "cli" ? getCliScript()
-                : getMdContent();
+        : activeTab === "cli" ? getCliScript()
+        : activeTab === "md" ? getMdContent()
+        : activeTab === "claude-tree" ? (claudePackage ? generateTreeView(claudePackage) : '')
+        : activeTab === "install-sh" ? (claudePackage ? generateInstallScript(claudePackage) : '')
+        : '';
 
     const copy = () => {
         navigator.clipboard.writeText(tabContent);
@@ -654,7 +717,7 @@ console.log('Run: git diff .claude/skills/ to track changes.');
             <div style={{ padding: "1.5rem", maxWidth: 720, margin: "0 auto" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                     <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500 }}>✅ {t.skillOutput}</h3>
-                    <button onClick={() => { setPhase("welcome"); setAnswers({}); setStep(0); setSkillYaml(""); setSecurity(null); setProjectType(null); }}
+                    <button onClick={() => { setPhase("welcome"); setAnswers({}); setStep(0); setSkillYaml(""); setSecurity(null); setProjectType(null); setClaudePackage(null); setActiveClaudeFile(null); }}
                         style={{
                             fontSize: 12, color: "var(--color-text-secondary)", background: "none",
                             border: "0.5px solid var(--color-border-secondary)", borderRadius: 8, cursor: "pointer", padding: "6px 12px"
@@ -691,12 +754,13 @@ console.log('Run: git diff .claude/skills/ to track changes.');
                     </div>
                 </div>
 
-                <div style={{ border: "0.5px solid var(--color-border-secondary)", borderRadius: 12, overflow: "hidden" }}>
-                    <div style={{ display: "flex", borderBottom: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)" }}>
+                {/* Skill file tabs */}
+                <div style={{ border: "0.5px solid var(--color-border-secondary)", borderRadius: 12, overflow: "hidden", marginBottom: 10 }}>
+                    <div style={{ display: "flex", borderBottom: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", overflowX: "auto" }}>
                         {tabs.map(tab => (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                                 style={{
-                                    padding: "8px 14px", fontSize: 12, cursor: "pointer", border: "none",
+                                    padding: "8px 14px", fontSize: 12, cursor: "pointer", border: "none", whiteSpace: "nowrap",
                                     background: activeTab === tab.id ? "var(--color-background-primary)" : "transparent",
                                     color: activeTab === tab.id ? "var(--color-text-primary)" : "var(--color-text-secondary)",
                                     fontFamily: "var(--font-mono)",
@@ -712,7 +776,7 @@ console.log('Run: git diff .claude/skills/ to track changes.');
                             </button>
                         </div>
                     </div>
-                    <textarea readOnly value={tabContent} rows={16}
+                    <textarea readOnly value={tabContent} rows={14}
                         style={{
                             width: "100%", fontSize: 12, fontFamily: "var(--font-mono)", padding: 14,
                             background: "#1e1e2e", color: "#cdd6f4", border: "none", resize: "vertical",
@@ -720,39 +784,147 @@ console.log('Run: git diff .claude/skills/ to track changes.');
                         }} />
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginTop: 10 }}>
+                {/* Skill download buttons */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 28 }}>
                     <button onClick={() => download(skillYaml, "project-skill.yaml", "text/yaml")}
-                        style={{
-                            padding: 10, fontSize: 12, fontWeight: 500, cursor: "pointer",
-                            background: "#534AB7", color: "#fff", border: "none", borderRadius: 8
-                        }}>
+                        style={{ padding: 10, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "#534AB7", color: "#fff", border: "none", borderRadius: 8 }}>
                         ↓ {t.downloadYaml}
                     </button>
                     <button onClick={() => download(getNpmPackage(), "package.json", "application/json")}
-                        style={{
-                            padding: 10, fontSize: 12, fontWeight: 500, cursor: "pointer",
-                            background: "var(--color-background-secondary)", color: "var(--color-text-primary)",
-                            border: "0.5px solid var(--color-border-secondary)", borderRadius: 8
-                        }}>
+                        style={{ padding: 10, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", borderRadius: 8 }}>
                         ↓ {t.downloadNpm}
                     </button>
                     <button onClick={() => download(getCliScript(), "skill-creator.js", "text/javascript")}
-                        style={{
-                            padding: 10, fontSize: 12, fontWeight: 500, cursor: "pointer",
-                            background: "var(--color-background-secondary)", color: "var(--color-text-primary)",
-                            border: "0.5px solid var(--color-border-secondary)", borderRadius: 8
-                        }}>
+                        style={{ padding: 10, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", borderRadius: 8 }}>
                         ↓ {t.downloadCli}
                     </button>
                     <button onClick={() => download(getMdContent(), "SKILL.md", "text/markdown")}
-                        style={{
-                            padding: 10, fontSize: 12, fontWeight: 500, cursor: "pointer",
-                            background: "var(--color-background-secondary)", color: "var(--color-text-primary)",
-                            border: "0.5px solid var(--color-border-secondary)", borderRadius: 8
-                        }}>
+                        style={{ padding: 10, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "var(--color-background-secondary)", color: "var(--color-text-primary)", border: "0.5px solid var(--color-border-secondary)", borderRadius: 8 }}>
                         ↓ {t.downloadMd}
                     </button>
                 </div>
+
+                {/* ── .claude/ STRUCTURE SECTION ─────────────────────────── */}
+                {claudePackage && (
+                    <div>
+                        {/* Divider */}
+                        <div style={{ height: 1, background: "var(--color-border-secondary)", marginBottom: 20 }} />
+
+                        {/* Section header */}
+                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
+                            <div>
+                                <h3 style={{ margin: "0 0 2px", fontSize: 16, fontWeight: 600 }}>{t.claudeSectionTitle}</h3>
+                                <p style={{ margin: 0, fontSize: 12, color: "var(--color-text-secondary)" }}>{t.claudeSectionSub}</p>
+                            </div>
+                            <div style={{ display: "flex", gap: 8 }}>
+                                <button onClick={() => claudePackage && download(generateInstallScript(claudePackage), "install-claude.sh", "text/plain")}
+                                    style={{ padding: "7px 12px", fontSize: 12, fontWeight: 500, cursor: "pointer", background: "#1D9E75", color: "#fff", border: "none", borderRadius: 8 }}>
+                                    ↓ {t.downloadInstall}
+                                </button>
+                                <button onClick={downloadZip}
+                                    style={{ padding: "7px 12px", fontSize: 12, fontWeight: 500, cursor: "pointer", background: "#534AB7", color: "#fff", border: "none", borderRadius: 8 }}>
+                                    ↓ {t.downloadZip}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Stats grid */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
+                            {[
+                                { label: lang === "pt" ? "Arquivos" : "Files", value: claudePackage.summary.totalFiles, icon: "📁" },
+                                { label: "Skills", value: claudePackage.summary.skillsCount, icon: "⚡" },
+                                { label: "Hooks", value: claudePackage.summary.hooksCount, icon: "🔗" },
+                                { label: "Docs", value: claudePackage.summary.docsCount, icon: "📄" },
+                            ].map(stat => (
+                                <div key={stat.label} style={{
+                                    padding: "12px 14px", borderRadius: 10, textAlign: "center",
+                                    background: "var(--color-background-secondary)", border: "0.5px solid var(--color-border-secondary)"
+                                }}>
+                                    <div style={{ fontSize: 18, marginBottom: 4 }}>{stat.icon}</div>
+                                    <div style={{ fontSize: 20, fontWeight: 700 }}>{stat.value}</div>
+                                    <div style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>{stat.label}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Key benefits */}
+                        <div style={{ padding: "12px 14px", borderRadius: 10, background: "var(--color-background-secondary)", border: "0.5px solid var(--color-border-secondary)", marginBottom: 14 }}>
+                            <p style={{ fontSize: 12, fontWeight: 600, margin: "0 0 8px" }}>✨ {t.benefitsTitle}</p>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 16px" }}>
+                                {claudePackage.summary.keyBenefits.map((b, i) => (
+                                    <div key={i} style={{ fontSize: 12, color: "var(--color-text-secondary)", display: "flex", gap: 6, alignItems: "flex-start" }}>
+                                        <span style={{ color: "#1D9E75", flexShrink: 0 }}>✓</span>{b}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* File explorer */}
+                        <div style={{ border: "0.5px solid var(--color-border-secondary)", borderRadius: 12, overflow: "hidden" }}>
+                            <div style={{ display: "flex", borderBottom: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-secondary)", overflowX: "auto" }}>
+                                <button onClick={() => { setActiveTab("claude-tree"); setActiveClaudeFile(null); }}
+                                    style={{
+                                        padding: "8px 12px", fontSize: 12, cursor: "pointer", border: "none", whiteSpace: "nowrap",
+                                        background: activeTab === "claude-tree" && !activeClaudeFile ? "var(--color-background-primary)" : "transparent",
+                                        color: activeTab === "claude-tree" && !activeClaudeFile ? "var(--color-text-primary)" : "var(--color-text-secondary)",
+                                        fontFamily: "var(--font-mono)",
+                                        borderBottom: activeTab === "claude-tree" && !activeClaudeFile ? "2px solid #534AB7" : "none",
+                                    }}>
+                                    🌳 Tree
+                                </button>
+                                <button onClick={() => { setActiveTab("install-sh"); setActiveClaudeFile(null); }}
+                                    style={{
+                                        padding: "8px 12px", fontSize: 12, cursor: "pointer", border: "none", whiteSpace: "nowrap",
+                                        background: activeTab === "install-sh" && !activeClaudeFile ? "var(--color-background-primary)" : "transparent",
+                                        color: activeTab === "install-sh" && !activeClaudeFile ? "var(--color-text-primary)" : "var(--color-text-secondary)",
+                                        fontFamily: "var(--font-mono)",
+                                        borderBottom: activeTab === "install-sh" && !activeClaudeFile ? "2px solid #534AB7" : "none",
+                                    }}>
+                                    📜 install.sh
+                                </button>
+                                <div style={{ width: 1, background: "var(--color-border-secondary)", margin: "4px 4px" }} />
+                                {/* File pills */}
+                                <div style={{ display: "flex", overflowX: "auto", gap: 2, padding: "4px 4px", alignItems: "center", flex: 1 }}>
+                                    {claudePackage.files.map(f => {
+                                        const fname = f.path.split("/").pop() ?? f.path;
+                                        const isActive = activeClaudeFile === f.path;
+                                        return (
+                                            <button key={f.path} onClick={() => { setActiveClaudeFile(f.path); setActiveTab("claude-tree"); }}
+                                                title={f.path}
+                                                style={{
+                                                    padding: "3px 9px", fontSize: 10, cursor: "pointer", border: "none", borderRadius: 12, whiteSpace: "nowrap",
+                                                    background: isActive ? "#534AB722" : "transparent",
+                                                    color: isActive ? "#534AB7" : "var(--color-text-secondary)",
+                                                    fontWeight: isActive ? 600 : 400,
+                                                }}>
+                                                {fname}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <textarea readOnly
+                                value={
+                                    activeClaudeFile
+                                        ? getClaudeFileContent(activeClaudeFile)
+                                        : activeTab === "install-sh"
+                                            ? generateInstallScript(claudePackage)
+                                            : generateTreeView(claudePackage)
+                                }
+                                rows={20}
+                                style={{
+                                    width: "100%", fontSize: 12, fontFamily: "var(--font-mono)", padding: 14,
+                                    background: "#1e1e2e", color: "#cdd6f4", border: "none", resize: "vertical",
+                                    boxSizing: "border-box", lineHeight: 1.6, display: "block"
+                                }} />
+                        </div>
+                        {activeClaudeFile && (
+                            <p style={{ fontSize: 11, color: "var(--color-text-secondary)", margin: "6px 0 0" }}>
+                                📂 {activeClaudeFile}
+                            </p>
+                        )}
+                    </div>
+                )}
             </div>
         );
     }
