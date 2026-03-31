@@ -8,37 +8,46 @@
 
 ## What does this generate?
 
-### 🧠 Claude Skill (YAML)
-A **Claude Skill** is a YAML file that gives Claude deep context about your project — your stack, architecture, coding conventions, security rules, and examples. It makes Claude behave like a senior developer who already knows your codebase.
+### 🧠 Claude Skills (Markdown Format)
+A **Claude Skill** is now a structured **SKILL.md** file that gives Claude deep context about your project — your stack, architecture, coding conventions, security rules, and examples. Each skill follows the **Anthropic 2026 standard** with YAML frontmatter + Markdown content.
 
 ### 📁 Complete .claude/ Structure
-But we go beyond just the skill. This tool generates a **complete .claude/ directory** following Claude Code best practices:
+We generate a **complete .claude/ directory** following **Claude Code best practices (Anthropic 2026)**:
 
 ```
 .claude/
-├── CLAUDE.md              # 🧠 Project brain — context, conventions, rules
-├── skills/                # ⚡ 8 reusable AI workflows 
-│   ├── code-review.yaml   # → Comprehensive code review expert
-│   ├── refactor-expert.yaml # → Code refactoring and improvement
-│   ├── testing-expert.yaml # → Test generation and strategy
-│   ├── deployment-expert.yaml # → Deployment automation
-│   ├── architecture-review.yaml # → System design review
-│   ├── security-audit.yaml # → Security scanning and fixes
-│   ├── performance-optimization.yaml # → Performance analysis
-│   └── documentation-expert.yaml # → Technical writing
-├── hooks/                 # 🔗 7 automated quality gates
-│   ├── pre-commit.yml     # → Quality checks before commit
-│   ├── pre-push.yml       # → Full validation before push
-│   ├── post-merge.yml     # → Environment sync after merge
-│   ├── code-quality.yml   # → Continuous quality monitoring
-│   ├── security-scan.yml  # → Automated security scanning
-│   ├── testing-automation.yml # → Smart test execution
-│   └── deployment-validation.yml # → Pre-deployment safety
-└── docs/                  # 📚 5 architectural documents
+├── CLAUDE.md                    # 🧠 Project brain — context, conventions, rules
+├── settings.json                # 🔗 Hook registry — maps lifecycle events to scripts
+├── skills/                      # ⚡ 8 reusable AI workflows (each a directory)
+│   ├── code-review/
+│   │   └── SKILL.md             # → Comprehensive code review expert
+│   ├── refactor-expert/
+│   │   └── SKILL.md             # → Code refactoring and improvement
+│   ├── testing-expert/
+│   │   └── SKILL.md             # → Test generation and strategy
+│   ├── deployment-expert/
+│   │   └── SKILL.md             # → Deployment automation
+│   ├── architecture-review/
+│   │   └── SKILL.md             # → System design review
+│   ├── security-audit/
+│   │   └── SKILL.md             # → Security scanning and fixes
+│   ├── performance-optimization/
+│   │   └── SKILL.md             # → Performance analysis
+│   └── documentation-expert/
+│       └── SKILL.md             # → Technical writing
+├── scripts/                     # 🔗 7 executable hook scripts (.sh)
+│   ├── pre-commit.sh            # → Quality checks before Claude edits files
+│   ├── pre-push.sh              # → Full validation before session ends
+│   ├── post-merge.sh            # → Environment sync after bash commands
+│   ├── code-quality.sh          # → Static analysis before edits
+│   ├── security-scan.sh         # → Security scanning before edits
+│   ├── testing.sh               # → Auto-run tests after edits
+│   └── deployment-validation.sh # → Deployment safety before bash commands
+└── docs/                        # 📚 5 architectural documents
     ├── ADR-001-architecture-decisions.md # → Why key decisions were made
-    ├── onboarding.md      # → Get new developers productive fast
-    ├── contributing.md    # → Development standards and workflow
-    ├── api-reference.md   # → API design patterns and conventions
+    ├── onboarding.md            # → Get new developers productive fast
+    ├── contributing.md          # → Development standards and workflow
+    ├── api-reference.md         # → API design patterns and conventions
     └── roi-and-best-practices.md # → ROI model and optimization guide
 ```
 
@@ -46,14 +55,75 @@ But we go beyond just the skill. This tool generates a **complete .claude/ direc
 
 Learn more: [Anthropic Skill Creator Guide](https://resources.anthropic.com/hubfs/The-Complete-Guide-to-Building-Skill-for-Claude.pdf)
 
+### 📋 New File Formats (Anthropic 2026)
+
+#### 🎯 Skills: Individual Directories with SKILL.md
+Each skill is now a **directory** containing a **SKILL.md** file:
+
+```markdown
+skills/code-review/SKILL.md
+---
+name: "code-review"
+description: "Comprehensive code review expert"
+version: "2.0"
+---
+
+# Code Review Expert
+
+You are a senior code reviewer with expertise in...
+[Detailed skill content in Markdown]
+```
+
+#### ⚙️ Hooks: Executable Scripts + Registry
+**Two-part system** for maximum compatibility:
+
+1. **`.claude/settings.json`** — Hook registry (Claude Code events):
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": ".claude/scripts/pre-commit.sh" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+2. **`.claude/scripts/*.sh`** — Executable bash scripts:
+```bash
+#!/usr/bin/env bash
+# .claude/scripts/pre-commit.sh
+set -euo pipefail
+
+echo "🔍 Running pre-commit checks..."
+npm run lint --fix || exit 1
+echo "✅ Pre-commit checks passed"
+```
+
+#### 🔄 Claude Code Lifecycle Events
+Hooks trigger automatically during Claude Code sessions:
+
+| Event | When | Example Hooks |
+|---|---|---|
+| `PreToolUse[Edit\|Write]` | Before Claude edits files | pre-commit.sh, code-quality.sh |
+| `PostToolUse[Edit\|Write]` | After Claude edits files | testing.sh |
+| `PreToolUse[Bash]` | Before Claude runs bash | deployment-validation.sh |
+| `PostToolUse[Bash]` | After Claude runs bash | post-merge.sh |
+| `Stop` | Session ends | pre-push.sh |
+
 ---
 
 ## Features
 
 ### 🚀 Complete AI Assistant Setup
 - 🧠 **Smart CLAUDE.md** — Captures your project's DNA (conventions, architecture, quality standards)
-- ⚡ **8 Expert Skills** — Code review, refactoring, testing, deployment, security, performance, docs, architecture
-- 🔗 **7 Quality Hooks** — Automated pre-commit, pre-push, security scanning, quality gates
+- ⚡ **8 Expert Skills** — Each in its own directory with SKILL.md (Anthropic 2026 format)
+- 🔗 **7 Executable Hooks** — Shell scripts (.sh) integrated with Claude Code lifecycle events
+- 📋 **Hook Registry** — settings.json maps Claude Code events to your scripts
 - 📚 **5 Decision Documents** — ADRs, onboarding guides, contributing standards, API reference, ROI guide
 
 ### 🎯 User Experience
@@ -69,11 +139,11 @@ Learn more: [Anthropic Skill Creator Guide](https://resources.anthropic.com/hubf
 - 🎯 **Quality metrics** — Coverage targets, complexity thresholds, performance goals
 
 ### 📦 Export Options
-- 📁 **.claude/ ZIP** — Complete structure ready to extract
-- 🛠️ **install.sh** — One-command setup script
-- 📜 **YAML skill** — Traditional single-skill file
+- 📁 **.claude/ ZIP** — Complete structure ready to extract (Anthropic 2026)
+- 🛠️ **install.sh** — One-command setup script with hooks
+- 📜 **SKILL.md** — Individual skills in new Markdown format
 - 📦 **npm package** — CLI distribution
-- 📝 **SKILL.md** — Documentation with embedded skill
+- ⚙️ **settings.json** — Claude Code hook registry
 
 ### 🎨 Developer Experience
 - 🌙 **Dark mode** — Automatic dark/light theme based on system preference
@@ -180,8 +250,8 @@ skill-creator/
 | Generator | Output | Description |
 |---|---|---|
 | **claude-md.ts** | `CLAUDE.md` | Project brain with context, conventions, rules |
-| **skills.ts** | 8 `.yaml` skills | Expert workflows (code review, testing, security, etc.) |
-| **hooks.ts** | 7 `.yml` hooks | Quality gates (pre-commit, security scan, deployment) |
+| **skills.ts** | 8 `skills/*/SKILL.md` | Expert workflows in Markdown format (Anthropic 2026) |
+| **hooks.ts** | 7 `.sh` scripts + `settings.json` | Executable hooks + Claude Code registry |
 | **docs.ts** | 5 `.md` documents | Architecture decisions, onboarding, API reference |
 | **structure.ts** | Orchestration | Combines all generators + utilities (install.sh, tree view) |
 
@@ -243,7 +313,11 @@ bash install-claude.sh
 ```bash
 # Check that the structure is in place
 ls .claude/
-# Expected: CLAUDE.md  skills/  hooks/  docs/
+# Expected: CLAUDE.md  settings.json  skills/  scripts/  docs/
+
+# Verify hooks are registered
+cat .claude/settings.json
+# Should show hook mappings for PreToolUse, PostToolUse, Stop events
 
 # Load skills in Claude Code
 claude /skills
@@ -257,24 +331,35 @@ cat .claude/CLAUDE.md
 
 ```bash
 # In Claude Code, you now have access to expert workflows:
-/skill code-review        # → Comprehensive code review
-/skill refactor-expert    # → Code refactoring guidance  
-/skill testing-expert     # → Test generation and strategy
-/skill deployment-expert  # → Deployment automation
-/skill security-audit     # → Security analysis
-/skill performance-optimization # → Performance analysis
-/skill architecture-review # → System design review
-/skill documentation-expert # → Technical writing
+# Each skill is a directory with SKILL.md (Anthropic 2026 format)
+/skill code-review        # → .claude/skills/code-review/SKILL.md
+/skill refactor-expert    # → .claude/skills/refactor-expert/SKILL.md
+/skill testing-expert     # → .claude/skills/testing-expert/SKILL.md
+/skill deployment-expert  # → .claude/skills/deployment-expert/SKILL.md
+/skill security-audit     # → .claude/skills/security-audit/SKILL.md
+/skill performance-optimization # → .claude/skills/performance-optimization/SKILL.md
+/skill architecture-review # → .claude/skills/architecture-review/SKILL.md
+/skill documentation-expert # → .claude/skills/documentation-expert/SKILL.md
 ```
 
 ### 🔗 Quality gates (hooks)
 
-The hooks automatically run quality checks:
-- **pre-commit** → Formatting, linting, unit tests
-- **pre-push** → Full test suite, security scans
-- **post-merge** → Dependency sync, environment updates
+**Claude Code Integration (Anthropic 2026)**:
+Hooks are registered in `.claude/settings.json` and automatically trigger during Claude Code sessions:
 
-Configure in your CI/CD or local git hooks.
+- **PreToolUse[Edit|Write]** → `pre-commit.sh`, `code-quality.sh`, `security-scan.sh`
+- **PostToolUse[Edit|Write]** → `testing.sh` (runs tests after Claude edits files)
+- **PostToolUse[Bash]** → `post-merge.sh` (syncs environment after git commands)
+- **PreToolUse[Bash]** → `deployment-validation.sh` (validates before deployment commands)
+- **Stop** → `pre-push.sh` (full validation before session ends)
+
+**Git Hook Compatibility**:
+Scripts are also Git-hook compatible — copy them to `.git/hooks/` for traditional Git integration:
+```bash
+cp .claude/scripts/pre-commit.sh .git/hooks/pre-commit
+cp .claude/scripts/pre-push.sh .git/hooks/pre-push
+chmod +x .git/hooks/*
+```
 
 ### 📚 Architecture documentation
 
@@ -426,8 +511,8 @@ Areas where help is especially welcome:
 
 ### ✅ Completed (v2.0)
 - [x] **Complete .claude/ structure generation** — Not just skills, but entire AI assistant setup
-- [x] **8 expert skills** — Code review, refactoring, testing, security, performance, docs, architecture, deployment
-- [x] **7 quality hooks** — Automated pre-commit, security scanning, deployment validation
+- [x] **8 expert skills** — Each in skill-name/SKILL.md format (Anthropic 2026)
+- [x] **7 executable hooks** — Shell scripts with Claude Code lifecycle integration
 - [x] **5 architecture docs** — ADRs, onboarding, contributing, API reference, ROI guide
 - [x] **CLAUDE.md brain** — Project-specific context, conventions, and rules
 - [x] **Multiple export options** — ZIP download, install.sh script, file explorer
