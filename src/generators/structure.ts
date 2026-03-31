@@ -46,7 +46,7 @@ export function generateClaudeStructure(
       description: 'Project brain — context, conventions and rules for Claude Code',
     },
     ...skills.map((s) => ({
-      path: `.claude/skills/${s.filename}`,
+      path: `.claude/skills/${s.filename}`,  // e.g. .claude/skills/code-review/SKILL.md
       content: s.content,
       description: s.description,
     })),
@@ -133,9 +133,9 @@ echo ""
 echo "✅ .claude/ structure installed successfully!"
 echo ""
 echo "📁 Created:"
-echo "   .claude/CLAUDE.md          → Project brain"
-echo "   .claude/skills/ (${pkg.summary.skillsCount} files)  → AI workflows"
-echo "   .claude/hooks/  (${pkg.summary.hooksCount} files)  → Quality gates"
+echo "   .claude/CLAUDE.md                    → Project brain"
+echo "   .claude/skills/ (${pkg.summary.skillsCount} skill dirs) → AI workflows (each as SKILL.md)"
+echo "   .claude/hooks/  (${pkg.summary.hooksCount} files)       → Quality gates"
 echo "   .claude/docs/   (${pkg.summary.docsCount} files)  → Architecture docs"
 echo ""
 echo "🚀 Next steps:"
@@ -167,7 +167,7 @@ export function generateTreeView(pkg: ClaudePackage): string {
   return `.claude/
 ├── CLAUDE.md                               # Project brain — context, rules, conventions
 │
-├── skills/ (${skillsCount} files)
+├── skills/ (${skillsCount} skill dirs — each contains SKILL.md)
 ${skillLines}
 │
 ├── hooks/ (${hooksCount} files)

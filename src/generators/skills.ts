@@ -19,12 +19,15 @@ function generateCodeReviewSkill(context: ClaudeProjectContext): ClaudeSkillFile
   const { language, framework, testing } = context;
   
   return {
-    filename: 'code-review.yaml',
+    filename: 'code-review/SKILL.md',
     description: 'Comprehensive code review skill focusing on quality, security, and best practices',
-    content: `name: Code Review Expert
+    content: `---
+name: Code Review Expert
 description: Perform thorough code reviews with focus on quality, security, and maintainability
+model: claude-sonnet-4-20250514
+max_tokens: 4000
+---
 
-instructions: |
   You are a senior code reviewer for a ${language} project using ${framework}. 
   
   When reviewing code, evaluate these aspects:
@@ -101,11 +104,7 @@ instructions: |
   - Key areas for improvement
   
   Always be constructive and educational in your feedback.
-
-model_config:
-  model: claude-3-5-sonnet-20241022
-  max_tokens: 4000
-  temperature: 0.1`
+`
   };
 }
 
@@ -113,12 +112,15 @@ function generateRefactorSkill(context: ClaudeProjectContext): ClaudeSkillFile {
   const { language, framework, architecture } = context;
   
   return {
-    filename: 'refactor-expert.yaml',
+    filename: 'refactor-expert/SKILL.md',
     description: 'Expert refactoring skill for improving code quality and architecture',
-    content: `name: Refactoring Expert
+    content: `---
+name: Refactoring Expert
 description: Improve code quality through systematic refactoring and architectural improvements
+model: claude-sonnet-4-20250514
+max_tokens: 4000
+---
 
-instructions: |
   You are a refactoring expert for ${language} projects using ${framework}. 
   Your goal is to improve code quality while maintaining functionality.
   
@@ -204,11 +206,7 @@ instructions: |
   - [ ] Performance maintained or improved
   - [ ] No breaking changes (unless intended)
   - [ ] Code coverage maintained
-
-model_config:
-  model: claude-3-5-sonnet-20241022
-  max_tokens: 4000
-  temperature: 0.2`
+`
   };
 }
 
@@ -216,12 +214,15 @@ function generateTestingSkill(context: ClaudeProjectContext): ClaudeSkillFile {
   const { language, framework, testing } = context;
   
   return {
-    filename: 'testing-expert.yaml',
+    filename: 'testing-expert/SKILL.md',
     description: 'Comprehensive testing skill covering unit, integration, and E2E testing strategies',
-    content: `name: Testing Expert
+    content: `---
+name: Testing Expert
 description: Create comprehensive test suites with proper coverage and testing strategies
+model: claude-sonnet-4-20250514
+max_tokens: 4000
+---
 
-instructions: |
   You are a testing expert for ${language} projects using ${framework}.
   Create robust, maintainable test suites that catch bugs early and enable confident refactoring.
   
@@ -329,11 +330,7 @@ instructions: |
   - Recommendations for improvement
   
   Always write tests that serve as living documentation of the system behavior.
-
-model_config:
-  model: claude-3-5-sonnet-20241022
-  max_tokens: 4000
-  temperature: 0.1`
+`
   };
 }
 
@@ -341,12 +338,15 @@ function generateDeploymentSkill(context: ClaudeProjectContext): ClaudeSkillFile
   const { deployment, framework } = context;
   
   return {
-    filename: 'deployment-expert.yaml',
+    filename: 'deployment-expert/SKILL.md',
     description: 'Deployment and DevOps automation expert for reliable releases',
-    content: `name: Deployment Expert
+    content: `---
+name: Deployment Expert
 description: Automate deployment processes and ensure reliable, zero-downtime releases
+model: claude-sonnet-4-20250514
+max_tokens: 4000
+---
 
-instructions: |
   You are a DevOps expert specializing in ${deployment || 'cloud'} deployments for ${framework} applications.
   Focus on automation, reliability, and monitoring for production systems.
   
@@ -478,11 +478,7 @@ instructions: |
   - Deployment procedures
   - Troubleshooting guides
   - Emergency response procedures
-
-model_config:
-  model: claude-3-5-sonnet-20241022
-  max_tokens: 4000
-  temperature: 0.1`
+`
   };
 }
 
@@ -490,12 +486,15 @@ function generateArchitectureReviewSkill(context: ClaudeProjectContext): ClaudeS
   const { architecture, language } = context;
   
   return {
-    filename: 'architecture-review.yaml',
+    filename: 'architecture-review/SKILL.md',
     description: 'Architectural review and design guidance for scalable systems',
-    content: `name: Architecture Review Expert
+    content: `---
+name: Architecture Review Expert
 description: Review and improve system architecture for scalability, maintainability, and performance
+model: claude-sonnet-4-20250514
+max_tokens: 4000
+---
 
-instructions: |
   You are a senior architect reviewing ${language} systems with ${architecture || 'modern'} architecture patterns.
   Evaluate design decisions for long-term success and business value.
   
@@ -614,22 +613,21 @@ instructions: |
   - Risk mitigation strategies
   
   Focus on practical, actionable advice that balances technical excellence with business constraints.
-
-model_config:
-  model: claude-3-5-sonnet-20241022
-  max_tokens: 4000
-  temperature: 0.2`
+`
   };
 }
 
 function generateSecurityAuditSkill(context: ClaudeProjectContext): ClaudeSkillFile {
   return {
-    filename: 'security-audit.yaml',
+    filename: 'security-audit/SKILL.md',
     description: 'Security audit and vulnerability assessment expert',
-    content: `name: Security Audit Expert
+    content: `---
+name: Security Audit Expert
 description: Comprehensive security review and vulnerability assessment for applications
+model: claude-sonnet-4-20250514
+max_tokens: 4000
+---
 
-instructions: |
   You are a cybersecurity expert conducting thorough security audits.
   Focus on identifying vulnerabilities and providing actionable remediation guidance.
   
@@ -776,11 +774,7 @@ instructions: |
   - Continuous monitoring approach
   
   Always provide actionable, specific remediation steps rather than generic security advice.
-
-model_config:
-  model: claude-3-5-sonnet-20241022
-  max_tokens: 4000
-  temperature: 0.1`
+`
   };
 }
 
@@ -788,12 +782,15 @@ function generatePerformanceOptimizationSkill(context: ClaudeProjectContext): Cl
   const { language, framework, database } = context;
   
   return {
-    filename: 'performance-optimization.yaml',
+    filename: 'performance-optimization/SKILL.md',
     description: 'Performance analysis and optimization expert for high-performance applications',
-    content: `name: Performance Optimization Expert
+    content: `---
+name: Performance Optimization Expert
 description: Analyze and optimize application performance for speed, scalability, and efficiency
+model: claude-sonnet-4-20250514
+max_tokens: 4000
+---
 
-instructions: |
   You are a performance engineer specializing in ${language} applications using ${framework}.
   Focus on identifying bottlenecks and implementing high-impact optimizations.
   
@@ -949,22 +946,21 @@ instructions: |
   - Long-term performance trends
   
   Focus on measurable improvements with clear before/after comparisons.
-
-model_config:
-  model: claude-3-5-sonnet-20241022
-  max_tokens: 4000
-  temperature: 0.1`
+`
   };
 }
 
 function generateDocumentationSkill(context: ClaudeProjectContext): ClaudeSkillFile {
   return {
-    filename: 'documentation-expert.yaml',
+    filename: 'documentation-expert/SKILL.md',
     description: 'Technical documentation and knowledge management expert',
-    content: `name: Documentation Expert
+    content: `---
+name: Documentation Expert
 description: Create clear, comprehensive technical documentation that serves developers and stakeholders
+model: claude-sonnet-4-20250514
+max_tokens: 4000
+---
 
-instructions: |
   You are a technical writing expert focused on creating documentation that actually gets used.
   Write for different audiences and maintain information that stays current and valuable.
   
@@ -1150,10 +1146,6 @@ instructions: |
   - Reduced support requests and questions
   
   Remember: The best documentation is the one that developers actually use and maintain.
-
-model_config:
-  model: claude-3-5-sonnet-20241022
-  max_tokens: 4000
-  temperature: 0.2`
+`
   };
 }
