@@ -2,8 +2,14 @@ export interface ClaudeStructure {
   claudeMd: string;
   skills: ClaudeSkillFile[];
   hooks: ClaudeHookFile[];
+  settings: ClaudeSettingsFile;  // .claude/settings.json — hook registration
   docs: ClaudeDocFile[];
   src?: ClaudeSrcFile[];
+}
+
+/** Represents .claude/settings.json — registers hooks into Claude Code events */
+export interface ClaudeSettingsFile {
+  content: string; // JSON string
 }
 
 export interface ClaudeSkillFile {

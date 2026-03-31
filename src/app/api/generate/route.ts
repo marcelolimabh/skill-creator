@@ -22,15 +22,31 @@ export async function POST(req: NextRequest) {
 
     const client = new Anthropic({ apiKey });
 
-    const prompt = `You are a senior developer and Claude Skill expert. Based on the following project answers, generate a complete, production-ready Claude Skill in YAML format.
+    const prompt = `You are a senior developer and Claude Skill expert for the Anthropic Claude Code ecosystem.
+Based on the following project answers, generate a complete, production-ready Claude Skill in the official 2026 format.
 
-The skill should include:
-- Project metadata (name, version, description)
-- Tech stack details
-- Architecture patterns and conventions
-- Code style rules
-- File structure conventions
-- Security best practices
+The skill MUST be in the following Markdown format with YAML frontmatter:
+
+\`\`\`
+---
+name: <Skill Name>
+description: <One-line description>
+model: claude-sonnet-4-20250514
+max_tokens: 4000
+temperature: 0.1
+---
+
+# <Skill Name>
+
+<Full Markdown instructions for Claude here>
+\`\`\`
+
+The skill instructions should include:
+- Project context (language, framework, architecture)
+- Code style rules and conventions specific to the stack
+- File structure and naming conventions
+- Architecture patterns and design constraints
+- Security best practices for this tech stack
 - Testing strategy
 - Common patterns and examples
 - Error handling conventions
@@ -39,10 +55,11 @@ Project answers:
 ${JSON.stringify(answers, null, 2)}
 
 IMPORTANT:
-- Output ONLY valid YAML, no markdown fences, no extra text.
-- The YAML must be a complete, detailed Claude Skill ready for production use.
+- Output ONLY the Markdown file content (starting with --- frontmatter), no extra explanation.
+- The file will be saved as .claude/skills/project-skill/SKILL.md
 - Include specific, actionable rules — not generic advice.
-- Tailor everything to the exact stack and architecture chosen.`;
+- Tailor everything to the exact stack and architecture chosen.
+- Use proper Markdown formatting with headers, bullet points, and code blocks.`;
 
     const message = await client.messages.create({
       model: "claude-sonnet-4-20250514",
@@ -50,10 +67,16 @@ IMPORTANT:
       messages: [{ role: "user", content: prompt }],
     });
 
-    const yaml =
+    const skillContent =
       message.content[0].type === "text" ? message.content[0].text : "";
 
-    return NextResponse.json({ yaml });
+    // Strip any markdown code fences if the model wrapped the output
+    const cleaned = skillContent
+      .replace(/^```(?:markdown|yaml|md)?\s*/m, "")
+      .replace(/\s*```\s*$/m, "")
+      .trim();
+
+    return NextResponse.json({ yaml: cleaned });
   } catch (error) {
     console.error("Generate API error:", error);
     return NextResponse.json(
