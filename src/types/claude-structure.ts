@@ -1,9 +1,46 @@
+export type AgentRole = 'orchestrator' | 'specialist';
+
+export type AgentTool =
+  | 'Read'
+  | 'Glob'
+  | 'Grep'
+  | 'Edit'
+  | 'Write'
+  | 'MultiEdit'
+  | 'Bash'
+  | 'WebFetch'
+  | 'TodoWrite';
+
+export type AgentCapability =
+  | 'codebase-analysis'
+  | 'pattern-detection'
+  | 'dependency-mapping'
+  | 'code-generation'
+  | 'refactoring'
+  | 'test-generation'
+  | 'security-audit'
+  | 'vulnerability-scanning'
+  | 'ci-cd-management'
+  | 'infrastructure-as-code'
+  | 'documentation-generation'
+  | 'orchestration';
+
+export interface ClaudeSubAgentFile {
+  filename: string;           // "code-analyst/AGENT.md"
+  content: string;            // Full AGENT.md with YAML frontmatter
+  description: string;
+  role: AgentRole;
+  tools: AgentTool[];
+  capabilities: AgentCapability[];
+}
+
 export interface ClaudeStructure {
   claudeMd: string;
   skills: ClaudeSkillFile[];
   hooks: ClaudeHookFile[];
   settings: ClaudeSettingsFile;  // .claude/settings.json — hook registration
   docs: ClaudeDocFile[];
+  agents: ClaudeSubAgentFile[];  // .claude/agents/ — autonomous sub-agents
   src?: ClaudeSrcFile[];
 }
 

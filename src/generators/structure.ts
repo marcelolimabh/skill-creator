@@ -3,6 +3,7 @@ import { generateClaudeMd } from './claude-md';
 import { generateSkills } from './skills';
 import { generateHooks, generateSettingsJson } from './hooks';
 import { generateDocs } from './docs';
+import { generateAgents } from './agents';
 
 export interface GeneratedFile {
   path: string;
@@ -21,6 +22,7 @@ export interface ClaudePackageSummary {
   skillsCount: number;
   hooksCount: number;
   docsCount: number;
+  agentsCount: number;
   estimatedTimeSavings: string;
   keyBenefits: string[];
 }
@@ -35,12 +37,13 @@ export function generateClaudeStructure(
   const skills = generateSkills(context);
   const hooks = generateHooks(context);
   const docs = generateDocs(context, teamContext, businessContext);
+  const agents = generateAgents(context);
 
   // Generate .claude/settings.json — registers hooks into Claude Code events
   const settingsContent = generateSettingsJson(hooks);
   const settings = { content: settingsContent };
 
-  const structure: ClaudeStructure = { claudeMd, skills, hooks, settings, docs };
+  const structure: ClaudeStructure = { claudeMd, skills, hooks, settings, docs, agents };
 
   // Build flat file list with paths
   const files: GeneratedFile[] = [
@@ -72,9 +75,15 @@ export function generateClaudeStructure(
       content: d.content,
       description: d.description,
     })),
+    // .claude/agents/<name>/AGENT.md — autonomous sub-agents (Anthropic 2026 standard)
+    ...agents.map((a) => ({
+      path: `.claude/agents/${a.filename}`,  // e.g. .claude/agents/code-analyst/AGENT.md
+      content: a.content,
+      description: a.description,
+    })),
   ];
 
-  const summary: ClaudePackageSummary = buildSummary(context, skills.length, hooks.length, docs.length);
+  const summary: ClaudePackageSummary = buildSummary(context, skills.length, hooks.length, docs.length, agents.length);
 
   return { structure, files, summary };
 }
@@ -83,15 +92,17 @@ function buildSummary(
   context: ClaudeProjectContext,
   skillsCount: number,
   hooksCount: number,
-  docsCount: number
+  docsCount: number,
+  agentsCount: number
 ): ClaudePackageSummary {
-  const totalFiles = 1 + skillsCount + hooksCount + docsCount; // 1 for CLAUDE.md
+  const totalFiles = 1 + skillsCount + hooksCount + docsCount + agentsCount; // 1 for CLAUDE.md + settings.json
 
   // Estimate time savings based on team context and structure quality
   const baseSavingsPerMonth =
-    skillsCount * 2 + // Each skill saves ~2h/month
-    hooksCount * 1.5 + // Each hook saves ~1.5h/month
-    docsCount * 0.5; // Each doc saves ~0.5h/month
+    skillsCount * 2 +   // Each skill saves ~2h/month
+    hooksCount * 1.5 +  // Each hook saves ~1.5h/month
+    docsCount * 0.5 +   // Each doc saves ~0.5h/month
+    agentsCount * 3;    // Each agent saves ~3h/month (autonomous multi-step work)
 
   const estimatedHours = Math.round(baseSavingsPerMonth);
 
@@ -99,6 +110,7 @@ function buildSummary(
     `${skillsCount} reusable AI workflows — stop rewriting prompts`,
     `${hooksCount} automated quality gates — enforce standards automatically`,
     `${docsCount} architecture documents — the "why" is always accessible`,
+    `${agentsCount} autonomous sub-agents — complex tasks delegated automatically`,
     `1 project brain (CLAUDE.md) — consistent AI context every session`,
     `Estimated ${estimatedHours}h/month saved per developer`,
     `New developers productive in days, not weeks`,
@@ -110,6 +122,7 @@ function buildSummary(
     skillsCount,
     hooksCount,
     docsCount,
+    agentsCount,
     estimatedTimeSavings: `~${estimatedHours}h/month per developer`,
     keyBenefits,
   };
@@ -153,12 +166,14 @@ echo "   .claude/settings.json                  → Hook registry for Claude Cod
 echo "   .claude/skills/ (${pkg.summary.skillsCount} skill dirs)  → AI workflows (skill-name/SKILL.md format)"
 echo "   .claude/scripts/ (${pkg.summary.hooksCount} scripts)     → Executable hooks (.sh) + lifecycle integration"
 echo "   .claude/docs/   (${pkg.summary.docsCount} files)         → Architecture docs"
+echo "   .claude/agents/ (${pkg.summary.agentsCount} agents)      → Autonomous sub-agents (agent-name/AGENT.md format)"
 echo ""
 echo "🚀 Next steps:"
 echo "   1. Review and customize .claude/CLAUDE.md"
 echo "   2. Test Claude Code integration:"
 echo "      claude --debug                         # See hooks executing"
 echo "      claude /skill code-review              # Test skills"
+echo "      # Invoke an agent: 'Use the security-auditor agent to review the auth module'"
 echo "   3. Optional Git hooks integration:"
 echo "      cp .claude/scripts/pre-commit.sh .git/hooks/pre-commit"
 echo "      cp .claude/scripts/pre-push.sh .git/hooks/pre-push"
@@ -166,13 +181,14 @@ echo "      chmod +x .git/hooks/pre-*"
 echo "   4. Commit: git add .claude/ && git commit -m 'feat: add Claude Code AI structure (Anthropic 2026)'"
 echo ""
 echo "💡 Your hooks will auto-trigger during Claude Code sessions (PreToolUse, PostToolUse, Stop events)"
+echo "🤖 Sub-agents handle complex multi-step tasks autonomously — invoke via natural language in Claude Code"
 `;
 }
 
 // ── Utility: generate a structured tree view ───────────────────────────────
 
 export function generateTreeView(pkg: ClaudePackage): string {
-  const { skillsCount, hooksCount, docsCount } = pkg.summary;
+  const { skillsCount, hooksCount, docsCount, agentsCount } = pkg.summary;
 
   const skillLines = pkg.structure.skills
     .map((s) => `│   ├── ${s.filename.padEnd(35)} # ${s.description.slice(0, 50)}`)
@@ -186,6 +202,10 @@ export function generateTreeView(pkg: ClaudePackage): string {
     .map((d) => `│   ├── ${d.filename.padEnd(35)} # ${d.description.slice(0, 50)}`)
     .join('\n');
 
+  const agentLines = pkg.structure.agents
+    .map((a) => `│   ├── ${a.filename.padEnd(35)} # ${a.description.slice(0, 50)}`)
+    .join('\n');
+
   return `.claude/
 ├── CLAUDE.md                               # Project brain — context, rules, conventions
 ├── settings.json                           # Hook registry — Claude Code lifecycle events
@@ -196,8 +216,11 @@ ${skillLines}
 ├── scripts/ (${hooksCount} hook scripts — .sh executables)
 ${hookLines}
 │
-└── docs/ (${docsCount} files)
+├── docs/ (${docsCount} files)
 ${docLines}
+│
+└── agents/ (${agentsCount} sub-agents — each contains AGENT.md)
+${agentLines}
 
 Total: ${pkg.summary.totalFiles} files
 Estimated value: ${pkg.summary.estimatedTimeSavings}

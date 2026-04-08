@@ -180,6 +180,37 @@ ${features?.length ? `- **Features**: ${features.join(', ')}` : ''}
 4. **Testing**: Automated testing in CI/CD pipeline
 5. **Deployment**: ${cicdPipeline ? 'Automated deployment to staging/production' : 'Manual deployment process'}
 
+## 🤖 Sub-Agent Roster
+
+This project includes autonomous sub-agents in \`.claude/agents/\`. Each agent has a specific role and a restricted toolset — invoke them by name in Claude Code for complex multi-step tasks.
+
+| Agent | Role | Toolset | When to use |
+|---|---|---|---|
+| \`project-orchestrator\` | Orchestrator | Read, Glob, Bash, TodoWrite | Complex tasks requiring multiple specialists |
+| \`code-analyst\` | Specialist | Read, Glob, Grep | Understand codebase before making changes |
+| \`implementation-engineer\` | Specialist | Read, Edit, Write, MultiEdit, Bash | Implementing features and refactoring |
+| \`test-engineer\` | Specialist | Read, Edit, Write, Bash | Writing and running tests |
+| \`security-auditor\` | Specialist | Read, Glob, Grep *(read-only)* | Security audits without modifying code |
+| \`devops-agent\` | Specialist | Read, Edit, Write, Bash | CI/CD, Docker, deployment config |
+| \`documentation-writer\` | Specialist | Read, Edit, Write | API docs, README, ADRs |
+
+### Invoking Agents
+
+Reference an agent by name in natural language:
+\`\`\`
+"Use the security-auditor agent to review the authentication module"
+"Ask the project-orchestrator to implement the user registration feature end-to-end"
+"Invoke the test-engineer to add integration tests for the payment service"
+\`\`\`
+
+### Agent + Skill Collaboration
+
+> **Rule**: Agents handle autonomous multi-step work. Skills provide expert prompting for interactive sessions. Use both together for best results.
+
+- After \`implementation-engineer\` finishes → run \`/skill code-review\`
+- After \`security-auditor\` reports → run \`/skill security-audit\` to plan remediation
+- Before large features → run \`/skill architecture-review\`, then delegate to \`project-orchestrator\`
+
 ### 📊 Success Metrics
 - **Code Quality**: Maintain high test coverage and low complexity
 - **Performance**: Meet response time targets
