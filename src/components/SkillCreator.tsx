@@ -829,12 +829,13 @@ console.log('Run: git diff .claude/skills/ to track changes.');
                         </div>
 
                         {/* Stats grid */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
                             {[
                                 { label: lang === "pt" ? "Arquivos" : "Files", value: claudePackage.summary.totalFiles, icon: "📁" },
                                 { label: "Skills", value: claudePackage.summary.skillsCount, icon: "⚡" },
                                 { label: "Hooks", value: claudePackage.summary.hooksCount, icon: "🔗" },
                                 { label: "Docs", value: claudePackage.summary.docsCount, icon: "📄" },
+                                { label: lang === "pt" ? "Agentes" : "Agents", value: claudePackage.summary.agentsCount, icon: "🤖" },
                             ].map(stat => (
                                 <div key={stat.label} style={{
                                     padding: "12px 14px", borderRadius: 10, textAlign: "center",

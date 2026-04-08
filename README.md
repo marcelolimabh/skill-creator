@@ -1,6 +1,6 @@
 # ⚡ Skill Creator
 
-> Generate production-ready **Claude Skills** + complete **.claude/ structure** for any project stack — interactively, in seconds.
+> Generate production-ready **Claude Skills**, **autonomous Sub-Agents** + complete **.claude/ structure** for any project stack — interactively, in seconds.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/marcelolimabh/skill-creator&env=ANTHROPIC_API_KEY)
 
@@ -43,12 +43,27 @@ We generate a **complete .claude/ directory** following **Claude Code best pract
 │   ├── security-scan.sh         # → Security scanning before edits
 │   ├── testing.sh               # → Auto-run tests after edits
 │   └── deployment-validation.sh # → Deployment safety before bash commands
-└── docs/                        # 📚 5 architectural documents
-    ├── ADR-001-architecture-decisions.md # → Why key decisions were made
-    ├── onboarding.md            # → Get new developers productive fast
-    ├── contributing.md          # → Development standards and workflow
-    ├── api-reference.md         # → API design patterns and conventions
-    └── roi-and-best-practices.md # → ROI model and optimization guide
+├── docs/                        # 📚 5 architectural documents
+│   ├── ADR-001-architecture-decisions.md # → Why key decisions were made
+│   ├── onboarding.md            # → Get new developers productive fast
+│   ├── contributing.md          # → Development standards and workflow
+│   ├── api-reference.md         # → API design patterns and conventions
+│   └── roi-and-best-practices.md # → ROI model and optimization guide
+└── agents/                      # 🤖 7 autonomous sub-agents (each a directory)
+    ├── project-orchestrator/
+    │   └── AGENT.md             # → Coordinates all specialist agents
+    ├── code-analyst/
+    │   └── AGENT.md             # → Read-only codebase exploration
+    ├── implementation-engineer/
+    │   └── AGENT.md             # → Feature implementation & refactoring
+    ├── test-engineer/
+    │   └── AGENT.md             # → Test generation and execution
+    ├── security-auditor/
+    │   └── AGENT.md             # → Read-only security analysis
+    ├── devops-agent/
+    │   └── AGENT.md             # → CI/CD and infrastructure management
+    └── documentation-writer/
+        └── AGENT.md             # → API docs, README and ADRs
 ```
 
 **Result**: Your team stops repeating prompts and gets consistent, high-quality AI assistance. Estimated **60% time savings** per developer with **2,300% annual ROI**.
@@ -72,6 +87,52 @@ version: "2.0"
 
 You are a senior code reviewer with expertise in...
 [Detailed skill content in Markdown]
+```
+
+#### 🤖 Agents: Autonomous Sub-Agents with AGENT.md
+
+Each sub-agent is a **directory** containing an **AGENT.md** file — similar to skills, but with a richer frontmatter that declares allowed **tools**, **role**, and **capabilities**:
+
+```markdown
+agents/security-auditor/AGENT.md
+---
+name: security-auditor
+description: Read-only security analyst — finds vulnerabilities without modifying code
+model: claude-sonnet-4-20250514
+max_tokens: 6000
+temperature: 0.0
+tools:
+  - Read
+  - Glob
+  - Grep
+role: specialist
+capabilities:
+  - security-audit
+  - vulnerability-scanning
+---
+
+# Security Auditor
+
+You are a read-only security specialist. You NEVER modify files...
+[Full Markdown instructions]
+```
+
+> **Skills vs Agents**: Skills provide expert prompting for **interactive sessions**. Agents perform **autonomous multi-step work** — they read files, write code, run tests, and coordinate with each other.
+
+#### 🔀 Orchestrator Pattern
+
+The `project-orchestrator` agent coordinates all specialists, decomposing complex tasks and delegating to the right agent:
+
+```
+User request: "Implement user registration with email confirmation"
+        │
+        ▼
+project-orchestrator
+  ├─ code-analyst      → maps existing auth modules (read-only)
+  ├─ implementation-engineer → creates service + controller
+  ├─ test-engineer     → generates unit + integration tests
+  ├─ security-auditor  → reviews DTOs and auth logic (read-only)
+  └─ documentation-writer → updates API reference
 ```
 
 #### ⚙️ Hooks: Executable Scripts + Registry
@@ -125,6 +186,7 @@ Hooks trigger automatically during Claude Code sessions:
 - 🔗 **7 Executable Hooks** — Shell scripts (.sh) integrated with Claude Code lifecycle events
 - 📋 **Hook Registry** — settings.json maps Claude Code events to your scripts
 - 📚 **5 Decision Documents** — ADRs, onboarding guides, contributing standards, API reference, ROI guide
+- 🤖 **7 Autonomous Sub-Agents** — Specialist AGENT.md files for multi-step autonomous work (orchestrator pattern)
 
 ### 🎯 User Experience
 - 🌐 **Bilingual** — Portuguese (BR) and English interface
@@ -164,13 +226,15 @@ Hooks trigger automatically during Claude Code sessions:
 | ❌ New developers take weeks to learn conventions | ✅ CLAUDE.md gets them productive in hours |
 | ❌ Code quality varies by developer mood | ✅ Automated hooks enforce standards |
 | ❌ Architecture decisions forgotten | ✅ ADR documents preserve the "why" |
+| ❌ Multi-step tasks require constant manual guidance | ✅ Sub-agents handle complex work autonomously |
 
 ### 📊 **Quantified Impact**
 
 - **60% time savings** per developer on AI-assisted tasks
 - **2,300% annual ROI** for a 5-person team (vs. $500/month Claude cost)
 - **65% faster onboarding** for new developers
-- **~20 files** of expert content generated in seconds
+- **~29 files** of expert content generated in seconds (skills + hooks + docs + agents)
+- **~49h/month saved** per developer with the full agent + skill stack
 - **Zero repetitive prompting** — your team scales AI systematically
 
 ### 🎯 **Perfect for teams who**
@@ -215,8 +279,9 @@ skill-creator/
 │   │   ├── page.tsx               # Main page (renders SkillCreator)
 │   │   ├── globals.css            # Global styles + dark/light mode
 │   │   └── api/
-│   │       ├── generate/route.ts  # Skill generation endpoint (Claude API)
-│   │       └── validate/route.ts  # Security validation endpoint (Claude API)
+│   │       ├── generate/route.ts        # Skill generation endpoint (Claude API)
+│   │       ├── generate-agent/route.ts  # Agent generation endpoint (Claude API)
+│   │       └── validate/route.ts        # Security validation endpoint (Claude API)
 │   ├── components/
 │   │   └── SkillCreator.tsx       # Main component (wizard, templates, i18n)
 │   ├── types/
@@ -226,6 +291,7 @@ skill-creator/
 │       ├── skills.ts              # Generates 8 expert skills
 │       ├── hooks.ts               # Generates 7 quality hooks
 │       ├── docs.ts                # Generates 5 architecture documents
+│       ├── agents.ts              # Generates 7 autonomous sub-agents
 │       └── structure.ts           # Main orchestrator + utilities
 ├── Dockerfile                     # Multi-stage build (deps → builder → runner)
 ├── next.config.mjs                # Next.js config (standalone output)
@@ -243,7 +309,7 @@ skill-creator/
 | **SkillCreator.tsx** | Main UI component with wizard, templates, and result display |
 | **generators/** | Creates all .claude/ content (CLAUDE.md, skills, hooks, docs) |
 | **types/** | TypeScript definitions for the complete .claude/ structure |
-| **API routes** | Handle Claude API calls for skill generation and security validation |
+| **API routes** | Handle Claude API calls for skill/agent generation and security validation |
 
 ### `generators/` — content generation engine
 
@@ -253,6 +319,7 @@ skill-creator/
 | **skills.ts** | 8 `skills/*/SKILL.md` | Expert workflows in Markdown format (Anthropic 2026) |
 | **hooks.ts** | 7 `.sh` scripts + `settings.json` | Executable hooks + Claude Code registry |
 | **docs.ts** | 5 `.md` documents | Architecture decisions, onboarding, API reference |
+| **agents.ts** | 7 `agents/*/AGENT.md` | Autonomous sub-agents with role, tools & capabilities |
 | **structure.ts** | Orchestration | Combines all generators + utilities (install.sh, tree view) |
 
 ### UI Features
@@ -285,6 +352,7 @@ Generate complete .claude/ structure:
   • 8 expert skills (code review, refactor, testing, etc.)
   • 7 quality hooks (pre-commit, security, deployment, etc.)
   • 5 documentation files (ADR, onboarding, API ref, etc.)
+  • 7 autonomous sub-agents (orchestrator + 6 specialists)
        │
        ▼
 Multiple export options:
@@ -313,7 +381,7 @@ bash install-claude.sh
 ```bash
 # Check that the structure is in place
 ls .claude/
-# Expected: CLAUDE.md  settings.json  skills/  scripts/  docs/
+# Expected: CLAUDE.md  settings.json  skills/  scripts/  docs/  agents/
 
 # Verify hooks are registered
 cat .claude/settings.json
@@ -361,6 +429,49 @@ cp .claude/scripts/pre-push.sh .git/hooks/pre-push
 chmod +x .git/hooks/*
 ```
 
+### 🤖 Using the autonomous sub-agents
+
+Your `.claude/agents/` directory contains 7 specialist agents ready to handle complex multi-step tasks. Invoke them by name in Claude Code using natural language:
+
+```bash
+# Delegate a complex task to the orchestrator
+"Use the project-orchestrator agent to implement user registration with email confirmation"
+
+# Invoke a specialist directly
+"Ask the security-auditor agent to review the authentication module for vulnerabilities"
+"Invoke the test-engineer agent to add integration tests for the payment service"
+"Use the devops-agent to create a GitHub Actions CI pipeline"
+"Ask the documentation-writer to update the API reference for the new endpoints"
+```
+
+#### Sub-Agent Roster
+
+| Agent | Role | Tools | Best for |
+|---|---|---|---|
+| `project-orchestrator` | Orchestrator | Read, Glob, Bash, TodoWrite | Complex multi-step features |
+| `code-analyst` | Specialist | Read, Glob, Grep *(read-only)* | Understanding code before changing it |
+| `implementation-engineer` | Specialist | Read, Edit, Write, MultiEdit, Bash | Writing and refactoring code |
+| `test-engineer` | Specialist | Read, Edit, Write, Bash | Creating and running tests |
+| `security-auditor` | Specialist | Read, Glob, Grep *(read-only)* | Security reviews without modifying files |
+| `devops-agent` | Specialist | Read, Edit, Write, Bash | CI/CD, Docker, Kubernetes |
+| `documentation-writer` | Specialist | Read, Edit, Write | API docs, README, ADRs |
+
+#### Agent + Skill Collaboration
+
+> Use **agents** for autonomous multi-step work. Use **skills** for interactive expert sessions. Combine both for maximum quality.
+
+```bash
+# Best practice workflow for a new feature:
+# 1. Review architecture first (skill)
+/skill architecture-review
+
+# 2. Delegate autonomous implementation (agent)
+"Use project-orchestrator to implement the feature"
+
+# 3. Review the result (skill)
+/skill code-review
+```
+
 ### 📚 Architecture documentation
 
 Your team now has living documentation:
@@ -375,12 +486,13 @@ Your team now has living documentation:
 ```bash
 # Commit the entire .claude/ structure
 git add .claude/
-git commit -m "feat: add Claude Code AI assistant structure
+git commit -m "feat: add Claude Code AI assistant structure (Anthropic 2026)
 
 - 8 expert skills for consistent AI workflows
-- 7 quality hooks for automated gates  
+- 7 quality hooks for automated gates
 - 5 architecture docs for team alignment
-- Project brain (CLAUDE.md) with conventions"
+- 7 autonomous sub-agents (orchestrator + specialists)
+- Project brain (CLAUDE.md) with conventions and agent roster"
 
 # After regenerating or updating
 git diff .claude/
@@ -522,9 +634,18 @@ Areas where help is especially welcome:
 - [x] Bilingual interface (EN + PT-BR)
 - [x] Docker support and dark mode
 
+### ✅ Completed (v2.1)
+- [x] **7 autonomous sub-agents** — `project-orchestrator` + 6 specialists (code-analyst, implementation-engineer, test-engineer, security-auditor, devops-agent, documentation-writer)
+- [x] **AGENT.md format** — YAML frontmatter with `tools`, `role`, and `capabilities` fields
+- [x] **Orchestrator pattern** — project-orchestrator coordinates all specialists for complex tasks
+- [x] **Read-only safety** — security-auditor and code-analyst never have write/execute tools
+- [x] **Agent + Skill collaboration** — CLAUDE.md documents how to use both together
+- [x] **`/api/generate-agent` route** — Claude API endpoint for custom agent generation
+- [x] **Context-aware agents** — each AGENT.md adapts to language, framework, architecture, and testing strategy
+
 ### 🚀 Next (v3.0)
 - [ ] **Team customization** — Add team size, experience level, methodology preferences
-- [ ] **Industry templates** — Fintech, healthcare, e-commerce specific .claude/ structures  
+- [ ] **Industry templates** — Fintech, healthcare, e-commerce specific .claude/ structures
 - [ ] **Skill Marketplace** — Share and discover public .claude/ configurations
 - [ ] **GitHub integration** — Auto-regenerate on repository changes
 - [ ] **Visual diffs** — Compare .claude/ structure versions
